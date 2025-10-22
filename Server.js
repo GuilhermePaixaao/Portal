@@ -102,18 +102,18 @@ module.exports = class Server {
         this.#jwtMiddleware = new JwtMiddleware(); // Inicializa middleware JWT
 
         // 🔹 Cria o pool global de conexões MySQL
-        this.#database = new MysqlDatabase({
-            host: "localhost",       // IP ou hostname do servidor MySQL
-            user: "root",              // Usuário do banco
-            password: "",         // Senha do usuário
-            database: "gestao_rh",        // Nome do banco de dados
-            port: 3306,                 // Porta do MySQL
-            waitForConnections: true,   // Espera se não houver conexão disponível
-            connectionLimit: 50,        // Máximo de conexões simultâneas no pool
-            queueLimit: 10              // Máximo de requisições enfileiradas
-        });
+    const dbConfig = {
+    host: process.env.MYSQL_ADDON_HOST || "localhost",
+    user: process.env.MYSQL_ADDON_USER || "root",
+    password: process.env.MYSQL_ADDON_PASSWORD || "",
+    database: process.env.MYSQL_ADDON_DB || "gestao_rh",
+    port: process.env.MYSQL_ADDON_PORT || 3306,
+    waitForConnections: true, 
+    connectionLimit: 50,      
+    queueLimit: 10            
+};
 
-        this.#database.connect();
+this.#database = new MysqlDatabase(dbConfig);
 
         // Monta dependências e rotas de cada módulo
         this.beforeRouting(); // Middleware executado antes das rotas
