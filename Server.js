@@ -86,8 +86,11 @@ module.exports = class Server {
         this.#app = express();
         this.#router = express.Router();
         this.#app.use(express.json()); // Habilita leitura de JSON no corpo da requisição
-        this.#app.use(express.static("static")); // Habilita pasta "static" para arquivos públicos (ex: HTML, JS, CSS)
-
+        this.#app.use(express.static("static"));
+         // Habilita pasta "static" para arquivos públicos (ex: HTML, JS, CSS)
+        this.#app.get('/', (req, res) => {
+            res.redirect('/Login.html');
+        });
         //configuração de cors significa que qualquer site ou domínio pode fazer requisições para sua API sem sofre bloquio de cors
         this.#app.use(cors({ origin: "*" }));
         /**
