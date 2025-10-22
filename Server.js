@@ -69,7 +69,7 @@ module.exports = class Server {
      */
     constructor(porta) {
         console.log("⬆️ CargoControl.constructor()");
-        this.#porta = porta ?? 8080;
+        this.#porta = process.env.PORT || porta || 8080;
     }
 
     /**
@@ -280,7 +280,7 @@ this.#database = new MysqlDatabase(dbConfig);
      */
     run = () => {
         this.#app.listen(this.#porta, () => {
-            console.log(`🚀 Server rodando em http://localhost:${this.#porta}/Login.html`);
+                console.log(`🚀 Server rodando em http://localhost:${this.#porta}/Login.html`);
         });
-    }
+}
 }
