@@ -3,9 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal Supermercado</title>
-    <link rel="icon" type="image/png" href="/logo.png">
+    <title>Chatbot - Portal Supermercado</title>
+    
     <link rel="stylesheet" href="css/dashboard.css">
+    
+    <link rel="stylesheet" href="css/chatbot.css">
 </head>
 <body>
 
@@ -13,20 +15,19 @@
         
         <header class="header">
             <div class="logo">PORTAL SUPERMERCADO</div>
-            
             <div class="search-bar">
                 <input type="text" placeholder="Buscar produtos, relatórios, chamados...">
             </div>
-            
             <div class="user-profile">
-                <span class="icon">🔔</span> <span class="icon">👤</span> </div>
+                <span class="icon">🔔</span> <span class="icon">👤</span> 
+            </div>
         </header>
         
         <aside class="sidebar">
             <nav>
                 <ul>
-                    <li class="active">
-                        <a href="#" title="Início">
+                    <li>
+                        <a href="dashboard.html" title="Início">
                             <span class="icon">🏠</span>
                             <span class="text">Início</span>
                         </a>
@@ -46,7 +47,7 @@
                         </a>
                     </li>
 
-                    <li>
+                    <li class="active">
                         <a href="Chatbot.html" title="Chatbot">
                             <span class="icon">🤖</span>
                             <span class="text">Chatbot</span>
@@ -71,50 +72,48 @@
         </aside>
         
         <main class="main-content">
-            <h1>Dashboard</h1>
+            <h1>Chatbot - Assistente Virtual</h1>
             
-            <div class="widget-grid">
+            <div class="chat-widget">
                 
-                <div class="widget large">
-                    <h3>Vendas Diárias</h3>
-                    <div class="placeholder-chart">(Gráfico de Linha: Vendas R$)</div>
-                </div>
-
-                <div class="widget large">
-                    <h3>Nível de Estoque (Categorias)</h3>
-                    <div class="placeholder-chart">(Gráfico de Barras: Estoque)</div>
-                </div>
-
-                <div class="widget">
-                    <h3>Promoções Ativas</h3>
-                    <div class="placeholder-image">(Imagem da promoção da semana)</div>
-                </div>
-
-                <div class="widget">
-                    <h3>Status das Filiais</h3>
-                    <div class="placeholder-chart">(Gráfico Radial: Filiais Online)</div>
-                </div>
+                <div class="chat-history" id="chatHistory">
+                    
+                    <div class="chat-message message-bot">
+                        <span class="avatar">🤖</span>
+                        <div class="message-bubble">
+                            <p>Olá! Eu sou o assistente virtual do Portal Supermercado. Como posso ajudar você hoje?</p>
+                            <span class="timestamp">9:00 AM</span>
+                        </div>
+                    </div>
+                    
+                    </div>
                 
-                <div class="widget stat-card">
-                    <div class="stat-info">
-                        <h3>Pedidos Online (Hoje)</h3>
-                        <span class="stat-value">142</span>
-                    </div>
-                    <div class="icon">🛒</div>
+                <div class="suggestion-area" id="suggestionArea">
+                    <button class="suggestion-btn" data-message="Status de um ticket">Status de um ticket</button>
+                    <button class="suggestion-btn" data-message="Imprimir etiquetas">Imprimir etiquetas</button>
+                    <button class="suggestion-btn" data-message="Abrir um chamado">Abrir um chamado</button>
                 </div>
 
-                <div class="widget stat-card">
-                    <div class="stat-info">
-                        <h3>Visitantes na Loja (Agora)</h3>
-                        <span class="stat-value">87</span>
+                <div class="typing-indicator" id="typingIndicator">
+                    <span class="avatar">🤖</span>
+                    <div class="message-bubble">
+                        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
                     </div>
-                    <div class="icon">👀</div>
+                </div>
+
+                <div class="chat-input-area">
+                    <input type="text" id="chatInput" placeholder="Digite sua mensagem...">
+                    <button id="sendButton" class="send-btn" title="Enviar">
+                        <span class="icon">➤</span>
+                    </button>
                 </div>
 
             </div>
         </main>
         
     </div>
+
+<script src="js/chatbot.js"></script>
 
 </body>
 </html>

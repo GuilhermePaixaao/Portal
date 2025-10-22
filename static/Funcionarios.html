@@ -3,120 +3,78 @@
 
 <head>
   <meta charset="UTF-8" />
-  <title>CRUD Usuários com ApiService</title>
+  <title>Funcionários</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <!-- Inclui o Bootstrap (biblioteca CSS) para deixar a página mais bonita e responsiva -->
-  <link href="/css/bootstrap.min.css" rel="stylesheet" />
-
+  <link href="css/dashboard.css" rel="stylesheet" />
+  <link rel="icon" type="image/png" href="/logo.png">
   <script src="/js/bootstrap.bundle.min.js"></script>
 
-  <style>
-    body {
-      padding: 2em;
-    }
-
-    table {
-      margin-top: 1em;
-    }
-  </style>
+ 
 </head>
+<div class="dashboard-container">
+        
+        <header class="header">
+            <div class="logo">PORTAL SUPERMERCADO</div>
+            
+            <div class="search-bar">
+                <input type="text" placeholder="Buscar produtos, relatórios, chamados...">
+            </div>
+            
+            <div class="user-profile">
+                <span class="icon">🔔</span> <span class="icon">👤</span> </div>
+        </header>
+        
+        <aside class="sidebar">
+            <nav>
+                <ul>
+                    <li>
+                        <a href="dashboard.html" title="Início">
+                            <span class="icon">🏠</span>
+                            <span class="text">Início</span>
+                        </a>
+                    </li>
+                    
+                    <li>
+                        <a href="#" title="Impressão de Preços">
+                            <span class="icon">🖨️</span>
+                            <span class="text">Imprimir</span>
+                        </a>
+                    </li>
 
-<body class="container">
-  <!-- “container” é uma classe do Bootstrap que centraliza o conteúdo -->
+                    <li class="ticket-item">
+                        <a href="#" title="Abrir Chamado (Airus)">
+                            <span class="icon">➕</span>
+                            <span class="text">Chamado</span>
+                        </a>
+                    </li>
 
-  <h1 class="mb-4">Gerenciamento de Funcionários</h1>
+                    <li>
+                        <a href="Chatbot.html" title="Chatbot">
+                            <span class="icon">🤖</span>
+                            <span class="text">Chatbot</span>
+                        </a>
+                    </li>
 
-  <!-- ======================== FILTRO DE FUNCIONÁRIOS ======================== -->
-  <div class="card mb-3">
-    <div class="card-header">Filtro de Funcionário</div>
-    <div class="card-body">
-      <!-- Campo de filtro por nome -->
-      <label for="txtFiltroNome" class="form-label">Nome do funcionário</label>
-      <input type="text" id="txtFiltroNome" class="form-control" placeholder="Digite o nome do funcionário">
+                    <li class="active">
+                        <a href="Funcionarios.html" title="funcionario">
+                            <span class="icon">💼</span>
+                            <span class="text">Funcionários</span>
+                        </a>
+                    </li>
 
-      <!-- Filtro por cargo -->
-      <select id="cboCargosFiltro" class="form-select mb-3">
-        <option value="-1">Selecione um cargo</option>
-      </select>
+                    <li style="margin-top: 30px;">
+                        <a href="#" title="Configurações">
+                            <span class="icon">⚙️</span>
+                            <span class="text">Ajustes</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
 
-      <!-- Filtro por vale transporte -->
-      <input type="checkbox" id="chkValeTransporteFiltro" class="form-check-input">
-      <label class="form-check-label" for="chkValeTransporteFiltro">Recebe Vale Transporte</label>
-    </div>
-  </div>
 
-  <!-- ======================== FORMULÁRIO DE CADASTRO ======================== -->
-  <div class="card mb-4">
-    <div class="card-header">Cadastro de Funcionário</div>
-    <div class="card-body">
-      <div class="mb-3">
-        <!-- Campo ID (preenchido automaticamente ao selecionar um registro da tabela) -->
-        <input type="number" id="txtId" class="form-control mb-2" disabled placeholder="ID (para update ou delete)" />
 
-        <!-- Campos de entrada de dados -->
-        <input type="text" id="txtNomeFuncionario" class="form-control mb-2" placeholder="Nome" />
-        <input type="text" id="txtEmail" class="form-control mb-2" placeholder="Email" />
-        <input type="password" id="txtSenha" class="form-control mb-2" placeholder="Senha" />
-
-        <!-- Combobox para selecionar o cargo -->
-        <select id="cboCargos" class="form-select mb-3">
-          <option value="-1">Selecione um cargo</option>
-        </select>
-
-        <!-- Checkbox para indicar se o funcionário recebe vale transporte -->
-        <div class="form-check mb-2">
-          <input type="checkbox" id="chkValeTransporte" class="form-check-input">
-          <label class="form-check-label" for="chkValeTransporte">Recebe Vale Transporte</label>
-        </div>
-      </div>
-
-      <!-- Div onde os botões CRUD (Criar, Atualizar, Excluir, Listar) serão criados -->
-      <div class="mb-3 d-flex gap-2" id="divBotoes"></div>
-    </div>
-
-    <!-- Div usada para exibir mensagens de sucesso ou erro -->
-    <div id="divResposta" class="alert d-inline-block p-2"></div>
-  </div>
-
-  <!-- ============================= -->
-  <!-- CARD: Tabela de Funcionários -->
-  <!-- ============================= -->
-  <div class="card mt-4">
-    <!-- Cabeçalho do card: título que aparece no topo -->
-    <div class="card-header">
-      Lista de Funcionários
-    </div>
-
-    <!-- Corpo do card, onde a tabela realmente será exibida -->
-    <div class="card-body">
-      <!-- Div onde a tabela será inserida dinamicamente via JavaScript -->
-      <!-- A função renderTable(dados) cria a tabela e insere aqui -->
-      <div id="divTabela"></div>
-    </div>
-  </div>
-  <!-- Modal de Confirmação -->
-  <div class="modal fade" id="modalConfirm" tabindex="-1" aria-labelledby="modalConfirmLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <!-- Cabeçalho do modal -->
-        <div class="modal-header">
-          <h5 class="modal-title" id="modalConfirmLabel">Confirmação</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-        </div>
-
-        <!-- Corpo do modal -->
-        <div class="modal-body">
-          Tem certeza que deseja excluir este registro?
-        </div>
-
-        <!-- Rodapé do modal -->
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="button" class="btn btn-danger" id="btnConfirmDelete">Excluir</button>
-        </div>
-      </div>
-    </div>
-  </div>
+                                             
 
   <script type="module">
     import ApiService from './ApiService.js'; // Importa uma classe auxiliar que faz as requisições HTTP
