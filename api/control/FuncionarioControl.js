@@ -2,7 +2,6 @@ const FuncionarioService = require("../service/FuncionarioService");
 
 /**
  * Classe responsável por controlar os endpoints da API REST para a entidade Funcionario.
- * 
  * Implementa métodos de CRUD e autenticação, utilizando injeção de dependência
  * para receber a instância de FuncionarioService, desacoplando a lógica de negócio
  * da camada de controle.
@@ -13,7 +12,6 @@ module.exports = class FuncionarioControl {
     /**
      * Construtor da classe FuncionarioControl
      * @param {FuncionarioService} funcionarioServiceDependency - Instância do FuncionarioService
-     * 
      * A injeção de dependência permite:
      * - Testes unitários fáceis com mocks;
      * - Troca de implementação do serviço sem alterar o controlador;
@@ -29,7 +27,6 @@ module.exports = class FuncionarioControl {
      * @param {Object} request - Objeto da requisição Express.js contendo email e senha.
      * @param {Object} response - Objeto da resposta Express.js.
      * @param {Function} next - Middleware de tratamento de erros.
-     * 
      * Retorna JSON com os dados do funcionário autenticado ou encaminha o erro.
      */
     login = async (request, response, next) => {
@@ -49,11 +46,10 @@ module.exports = class FuncionarioControl {
     }
 
     /**
-     * Cria um novo funcionário.
+     * Cria um novo funcionário. (MÉTODO CORRIGIDO)
      * @param {Object} request - Objeto da requisição Express.js com os dados do funcionário.
      * @param {Object} response - Objeto da resposta Express.js.
      * @param {Function} next - Middleware de tratamento de erros.
-     * 
      * Retorna JSON com o ID do funcionário criado e mensagem de sucesso.
      */
     store = async (request, response, next) => {
@@ -62,12 +58,14 @@ module.exports = class FuncionarioControl {
             const jsonFuncionario = request.body.funcionario;
             const resultado = await this.#funcionarioService.createFuncionario(jsonFuncionario);
 
-            response.status(200).json({
+            // Status HTTP 201 = Created
+            response.status(201).json({
                 success: true,
                 message: "Cadastro realizado com sucesso",
                 data: { funcionario: resultado }
             });
         } catch (error) {
+            // Envia o erro para o middleware de erro global (ErrorResponse)
             next(error);
         }
     }
@@ -77,7 +75,6 @@ module.exports = class FuncionarioControl {
      * @param {Object} request - Objeto da requisição Express.js.
      * @param {Object} response - Objeto da resposta Express.js.
      * @param {Function} next - Middleware de tratamento de erros.
-     * 
      * Retorna JSON com array de funcionários.
      */
     index = async (request, response, next) => {
@@ -100,7 +97,6 @@ module.exports = class FuncionarioControl {
      * @param {Object} request - Objeto da requisição Express.js.
      * @param {Object} response - Objeto da resposta Express.js.
      * @param {Function} next - Middleware de tratamento de erros.
-     * 
      * Retorna JSON com os dados do funcionário encontrado.
      */
     show = async (request, response, next) => {
@@ -124,7 +120,6 @@ module.exports = class FuncionarioControl {
      * @param {Object} request - Objeto da requisição Express.js com os dados atualizados.
      * @param {Object} response - Objeto da resposta Express.js.
      * @param {Function} next - Middleware de tratamento de erros.
-     * 
      * Retorna JSON com os dados atualizados do funcionário ou encaminha o erro.
      */
     update = async (request, response, next) => {
@@ -138,7 +133,7 @@ module.exports = class FuncionarioControl {
                 message: "Atualizado com sucesso",
                 data: {
                     funcionario: {
-                        idFuncionario: parseInt(request.params.idFuncionario),
+                        idFuncionario: parseInt(request.params.idFuncionario, 10),
                         nomeFuncionario: request.body.funcionario.nomeFuncionario
                     }
                 }
@@ -153,7 +148,6 @@ module.exports = class FuncionarioControl {
      * @param {Object} request - Objeto da requisição Express.js.
      * @param {Object} response - Objeto da resposta Express.js.
      * @param {Function} next - Middleware de tratamento de erros.
-     * 
      * Retorna status 204 se excluído com sucesso ou 404 se o funcionário não existir.
      */
     destroy = async (request, response, next) => {
@@ -170,10 +164,8 @@ module.exports = class FuncionarioControl {
                 });
             }
 
-            response.status(204).json({
-                success: true,
-                message: "Excluído com sucesso"
-            });
+            // 204 No Content: sem corpo na resposta
+            return response.status(204).send();
         } catch (error) {
             next(error);
         }

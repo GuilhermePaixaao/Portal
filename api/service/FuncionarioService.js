@@ -4,12 +4,11 @@ const Cargo = require("../model/Cargo");
 const Funcionario = require("../model/Funcionario");
 const MeuTokenJWT = require("../http/MeuTokenJWT");
 const ErrorResponse = require("../utils/ErrorResponse");
-
+// Assumindo que o bcrypt está no DAO, não precisamos dele aqui.
 
 /**
  * Classe responsável pela camada de serviço para a entidade Funcionario.
- * 
- * Observações sobre injeção de dependência:
+ *  * Observações sobre injeção de dependência:
  * - O FuncionarioService recebe uma instância de FuncionarioDAO via construtor.
  * - Isso desacopla o serviço da implementação concreta do DAO.
  * - Facilita testes unitários e uso de mocks.
@@ -17,6 +16,7 @@ const ErrorResponse = require("../utils/ErrorResponse");
 module.exports = class FuncionarioService {
     #funcionarioDAO;
     #cargoDAO;
+
     /**
      * Construtor da classe FuncionarioService
      * @param {FuncionarioDAO} funcionarioDAODependency - Instância de FuncionarioDAO
@@ -29,99 +29,86 @@ module.exports = class FuncionarioService {
     }
 
     /**
-     * Cria um novo funcionário.
+     * Cria um novo funcionário. (ATUALIZADO PARA O CONTEXTO ATUAL)
      *
      * @param {Object} jsonFuncionario - Objeto contendo dados do funcionário
-     * @param {Object} jsonFuncionario.funcionario - Dados do funcionário
-     * @param {string} requestBody.funcionario.nomeFuncionario - Nome do funcionário
-     * @param {string} requestBody.funcionario.email - Email do funcionário
-     * @param {string} requestBody.funcionario.senha - Senha do funcionário
-     * @param {boolean} requestBody.funcionario.recebeValeTransporte - Se recebe vale transporte
-     * @param {Object} requestBody.funcionario.cargo - Objeto cargo
-     * @param {number} requestBody.funcionario.cargo.idCargo - ID do cargo
+     * @param {string} jsonFuncionario.nomeFuncionario
+     * @param {string} jsonFuncionario.email
+     * @param {string} jsonFuncionario.senha
+     * @param {string} jsonFuncionario.usuario - (ADICIONADO)
+     * @param {Object} jsonFuncionario.cargo - { idCargo }
      *
      * @returns {Promise<Funcionario>} - Objeto Funcionario criado com ID atribuído
-     * @throws {ErrorResponse} - Em caso de validação de dados inválidos ou email já existente
-     *
-     * @example
-     * const funcionario = await funcionarioService.createFuncionario({ funcionario: {...} });
+     * @throws {ErrorResponse} - Em caso de validação de dados inválidos ou email/usuario já existente
      */
     createFuncionario = async (jsonFuncionario) => {
         console.log("🟣 FuncionarioService.createFuncionario()");
 
-        //criar o cargo que será utilizado pelo funcionário
-        const objetoCargo = new Cargo();
-        objetoCargo.idCargo = jsonFuncionario.cargo.idCargo // regra de dominio
-
-        // Criação da instância Funcionario
-        const objFuncionario = new Funcionario();
-
-        //aplica regra de dominio pq chama os sets da classe funcionário para inserir valores 
-        objFuncionario.nomeFuncionario = jsonFuncionario.nomeFuncionario; // regra de dominio
-        objFuncionario.email = jsonFuncionario.email; // regra de dominio
-        objFuncionario.senha = jsonFuncionario.senha; // regra de dominio
-        objFuncionario.recebeValeTransporte = jsonFuncionario.recebeValeTransporte; // regra de dominio
-        objFuncionario.cargo = objetoCargo; // regra de dominio
-
-        //regra de negocio => verificar se cargo fornecido existe antes de cadastrar
-        const cargoExiste = this.#cargoDAO.findByField("idCargo", objFuncionario.cargo.idCargo);
-        if (cargoExiste.length == 0) {
+        // 1. REGRA DE NEGÓCIO: Verificar se cargo fornecido existe
+        // (CORRIGIDO: Adicionado 'await' e assumindo que seu CargoDAO tem 'findById')
+        const cargoExiste = await this.#cargoDAO.findById(jsonFuncionario.cargo.idCargo);
+        if (!cargoExiste) {
+            // (CORRIGIDO: Mensagem de erro estava errada)
             throw new ErrorResponse(
                 400,
                 "O cargo informado não existe",
-                { message: `O email ${objFuncionario.email} já está cadastrado` }
+                { message: `O Cargo com ID ${jsonFuncionario.cargo.idCargo} não foi encontrado.` }
             );
         }
 
-        //regra de negocio => Verificação de email duplicado
-        const emailExiste = await this.#funcionarioDAO.findByField("email", objFuncionario.email);
+        // 2. REGRA DE NEGÓCIO: Verificação de email duplicado
+        const emailExiste = await this.#funcionarioDAO.findByField("email", jsonFuncionario.email);
         if (emailExiste.length > 0) {
             throw new ErrorResponse(
                 400,
-                "´Já existe um Funcionário com o email fornecido",
-                { message: `O email ${objFuncionario.email} já está cadastrado` }
+                "Já existe um Funcionário com o email fornecido",
+                { message: `O email ${jsonFuncionario.email} já está cadastrado` }
             );
         }
 
-        // Persistência e atribuição de ID
+        // 3. REGRA DE NEGÓCIO: Verificação de 'usuario' duplicado (ADICIONADO)
+        const usuarioExiste = await this.#funcionarioDAO.findByField("usuario", jsonFuncionario.usuario);
+        if (usuarioExiste.length > 0) {
+            throw new ErrorResponse(
+                400,
+                "Já existe um Funcionário com o usuário fornecido",
+                { message: `O usuário ${jsonFuncionario.usuario} já está cadastrado` }
+            );
+        }
+
+        // 4. Montagem do Objeto
+        const objetoCargo = new Cargo();
+        objetoCargo.idCargo = jsonFuncionario.cargo.idCargo;
+
+        const objFuncionario = new Funcionario();
+        objFuncionario.nomeFuncionario = jsonFuncionario.nomeFuncionario;
+        objFuncionario.email = jsonFuncionario.email;
+        objFuncionario.usuario = jsonFuncionario.usuario; // (ADICIONADO)
+        objFuncionario.senha = jsonFuncionario.senha; // (CORRETO - DAO irá criptografar)
+        // objFuncionario.recebeValeTransporte foi (REMOVIDO)
+        objFuncionario.cargo = objetoCargo;
+
+        // 5. Persistência (DAO faz o hash da senha)
         objFuncionario.idFuncionario = await this.#funcionarioDAO.create(objFuncionario);
 
         return objFuncionario;
     }
 
-
     /**
-     * Realiza o login de um funcionário.
+     * Realiza o login de um funcionário. (ATUALIZADO PARA O CONTEXTO ATUAL)
      *
-     * 🔹 Regra de aplicação: valida as credenciais do usuário e retorna um token JWT.
-     *
-     * @param {Object} jsonFuncionario - Objeto contendo os dados de login.
-     * @param {Object} jsonFuncionario.funcionario - Dados do funcionário para login.
-     * @param {string} requestBody.funcionario.email - Email do funcionário.
-     * @param {string} requestBody.funcionario.senha - Senha do funcionário.
-     *
-     * @returns {Promise<Object>} - Retorna um objeto contendo:
-     *                              { user: { idFuncionario, name, email, role }, token }
-     *
-     * @throws {ErrorResponse} - Lança erro 401 se usuário ou senha forem inválidos,
-     *                            ou erro 500 em caso de falha interna.
-     *
-     * @example
-     * const resultado = await funcionarioService.loginFuncionario({
-     *   funcionario: { email: "teste@dominio.com", senha: "123456" }
-     * });
-     * console.log(resultado.user, resultado.token);
+     * @param {Object} jsonFuncionario - { email, senha }
+     * @returns {Promise<Object>} - { user: {...}, token }
+     * @throws {ErrorResponse} - 401 se credenciais inválidas
      */
     loginFuncionario = async (jsonFuncionario) => {
         console.log("🟣 FuncionarioService.loginFuncionario()");
 
-
         const objetoFuncionario = new Funcionario();
         objetoFuncionario.email = jsonFuncionario.email;
-        objetoFuncionario.senha = jsonFuncionario.senha
+        objetoFuncionario.senha = jsonFuncionario.senha;
 
-
-        // Consulta no DAO 
+        // Consulta no DAO (DAO faz a comparação de hash)
         const encontrado = await this.#funcionarioDAO.login(objetoFuncionario);
 
         if (!encontrado) {
@@ -133,6 +120,7 @@ module.exports = class FuncionarioService {
         const user = {
             funcionario: {
                 email: encontrado.email,
+                usuario: encontrado.usuario, // (ADICIONADO)
                 role: encontrado.cargo?.nomeCargo || null,
                 name: encontrado.nomeFuncionario || null,
                 idFuncionario: encontrado.idFuncionario
@@ -163,7 +151,6 @@ module.exports = class FuncionarioService {
 
         const funcionario = await this.#funcionarioDAO.findById(objFuncionario.idFuncionario);
 
-
         if (!funcionario) {
             throw new ErrorResponse(404, "Funcionário não encontrado", { message: `Não existe funcionário com id ${idFuncionario}` });
         }
@@ -172,7 +159,7 @@ module.exports = class FuncionarioService {
     }
 
     /**
-     * Atualiza um funcionário
+     * Atualiza um funcionário (ATUALIZADO PARA O CONTEXTO ATUAL)
      * @param {number} idFuncionario - ID do funcionário
      * @param {Object} requestBody - Dados atualizados do funcionário
      * @returns {Promise<Funcionario>} - Objeto Funcionario atualizado
@@ -182,21 +169,27 @@ module.exports = class FuncionarioService {
         console.log("🟣 FuncionarioService.updateFuncionario()");
         const jsonFuncionario = requestBody.funcionario;
 
+        // TODO: Adicionar validação de 'cargoExiste', 'emailDuplicado', etc.
+        // (O método de update está muito simples, idealmente ele teria 
+        // as mesmas validações do 'create' antes de atualizar)
+        // Por exemplo:
+        // const cargoExiste = await this.#cargoDAO.findById(jsonFuncionario.cargo.idCargo);
+        // if (!cargoExiste) { ... throw error ... }
+
         const objCargo = new Cargo();
         objCargo.idCargo = jsonFuncionario.cargo.idCargo;
 
-        //validação das regras de dominio
         const objFuncionario = new Funcionario();
 
+        objFuncionario.idFuncionario = idFuncionario;
+        objFuncionario.nomeFuncionario = jsonFuncionario.nomeFuncionario;
+        objFuncionario.email = jsonFuncionario.email;
+        objFuncionario.usuario = jsonFuncionario.usuario; // (ADICIONADO)
+        objFuncionario.senha = jsonFuncionario.senha; // (DAO vai verificar se a senha mudou e fazer o hash)
+        // objFuncionario.recebeValeTransporte foi (REMOVIDO)
+        objFuncionario.cargo = objCargo;
 
-        objFuncionario.idFuncionario = idFuncionario,
-            objFuncionario.nomeFuncionario = jsonFuncionario.nomeFuncionario,
-            objFuncionario.email = jsonFuncionario.email,
-            objFuncionario.senha = jsonFuncionario.senha,
-            objFuncionario.recebeValeTransporte = jsonFuncionario.recebeValeTransporte,
-            objFuncionario.cargo = objCargo
-
-        //envia um objeto valido de funcionario para atualizar
+        // envia um objeto valido de funcionario para atualizar
         return await this.#funcionarioDAO.update(objFuncionario);
     }
 
@@ -207,9 +200,8 @@ module.exports = class FuncionarioService {
      * @throws {ErrorResponse} - Em caso de ID inválido
      */
     deleteFuncionario = async (idFuncionario) => {
-
         const funcionario = new Funcionario();
-        funcionario.idFuncionario = idFuncionario
+        funcionario.idFuncionario = idFuncionario;
         return await this.#funcionarioDAO.delete(funcionario);
     }
 }

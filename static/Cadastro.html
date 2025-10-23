@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro - Portal Supermercado</title>
+    <link rel="stylesheet" href="css/login.css"> 
+    <link rel="icon" type="image/png" href="/logo.png">
+
+    <style>
+        /* Estilo de erro, copiado do seu login.html */
+        .login-error {
+            color: red;
+            text-align: center;
+            margin-top: 10px;
+        }
+        /* Novo estilo para mensagens de sucesso */
+        .login-success {
+            color: green;
+            text-align: center;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-container">
+        <div class="login-card">
+            
+            <div class="login-header">
+                <h2>PORTAL SUPERMERCADO</h2>
+                <p>Crie sua conta para continuar.</p>
+            </div>
+            
+            <form class="login-form" id="cadastroForm">
+                
+                <div class="input-group">
+                    <label for="nome">Nome Completo</label>
+                    <input type="text" id="nome" name="nome" placeholder="Seu nome completo" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="usuario">Usuário</label>
+                    <input type="text" id="usuario" name="usuario" placeholder="Crie um nome de usuário" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="email">E-mail</label>
+                    <input type="email" id="email" name="email" placeholder="seu.email@exemplo.com" required>
+                </div>
+                
+                <div class="input-group">
+                    <label for="password">Senha</label>
+                    <input type="password" id="password" name="password" placeholder="Crie uma senha forte" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="confirmarPassword">Confirmar Senha</label>
+                    <input type="password" id="confirmarPassword" name="confirmarPassword" placeholder="Repita a senha" required>
+                </div>
+                
+                <button type="submit" class="login-button">Cadastrar</button>
+            </form>
+            
+            <div id="divResposta"></div> 
+            
+            <div class="semconta-footer">
+                <a>Já tem conta?</a>
+            </div>
+            <div class="cadastro-footer">
+                <a href="login.html">Faça login aqui!</a>
+            </div>
+
+        </div>
+    </div>
+
+<script type="module">
+    // 1. Importa o ApiService.
+    import ApiService from './ApiService.js';
+
+    // 2. Configure a URL base da sua API.
+    const API_BASE_URL = "http://localhost:8080"; 
+    // const API_BASE_URL = "https://portal-uohu.onrender.com";
+    
+    const api = new ApiService(API_BASE_URL);
+
+    // 3. Referências para os elementos do DOM
+    const cadastroForm = document.getElementById("cadastroForm");
+    const nome = document.getElementById("nome");
+    const usuario = document.getElementById("usuario");
+    const email = document.getElementById("email");
+    const password = document.getElementById("password");
+    const confirmarPassword = document.getElementById("confirmarPassword");
+    const divResposta = document.getElementById("divResposta");
+
+    // 4. Adiciona um "ouvinte" ao evento de SUBMIT do formulário
+    cadastroForm.addEventListener("submit", async (event) => {
+        
+        // 5. Previne que o formulário recarregue a página
+        event.preventDefault(); 
+        
+        // Limpa mensagens antigas
+        divResposta.textContent = "";
+        divResposta.className = "";
+
+        // 6. Validação dos campos
+        if (nome.value.trim() === "" || usuario.value.trim() === "" || email.value.trim() === "" || password.value.trim() === "") {
+            divResposta.textContent = "Por favor, preencha todos os campos.";
+            divResposta.className = "login-error";
+            return;
+        }
+
+        if (password.value !== confirmarPassword.value) {
+            divResposta.textContent = "As senhas não coincidem!";
+            divResposta.className = "login-error";
+            return;
+        }
+
+        // 7. Monta o objeto de dados para enviar à API
+        // (Enviamos apenas a 'password', não a 'confirmarPassword')
+        const dadosCadastro = {
+            "funcionario": {
+                "nome": nome.value.trim(),
+                "usuario": usuario.value.trim(),
+                "email": email.value.trim(),
+                "senha": password.value.trim()
+            }
+        }
+
+        try {
+            // 8. Chama a API
+            // (Endpoint para CRIAR um novo funcionário, geralmente POST no /api/v1/funcionarios)
+            const respostaAPI = await api.post("/api/v1/funcionarios", dadosCadastro);
+            
+            console.log("Resposta da API:", respostaAPI);
+
+            if (respostaAPI.success === true) {
+                // 9. Sucesso: Mostra mensagem e redireciona para o login
+                divResposta.textContent = "Cadastro realizado com sucesso! Redirecionando...";
+                divResposta.className = "login-success";
+                
+                // Espera 2 segundos antes de redirecionar
+                setTimeout(() => {
+                    window.location.href = "login.html"; // Redireciona para o login
+                }, 2000);
+
+            } else {
+                // 10. Erro de cadastro vindo da API (ex: "Usuário já existe")
+                divResposta.textContent = respostaAPI.message || "Falha no cadastro. Verifique os dados.";
+                divResposta.className = "login-error";
+            }
+
+        } catch (error) {
+            // 11. Erro de rede ou servidor (ex: API offline, erro 500)
+            console.error("Erro ao tentar cadastrar:", error);
+            divResposta.textContent = "Não foi possível conectar ao servidor. Tente novamente mais tarde.";
+            divResposta.className = "login-error";
+        }
+    });
+
+</script>
+
+</body>
+</html>

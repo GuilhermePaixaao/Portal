@@ -118,3 +118,37 @@
         .login-footer a:hover {
             text-decoration: underline;
         }
+
+
+        .semconta-footer {
+            margin-top: 25px;
+        }
+
+        .semconta-footer a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+
+        .semconta-footer a:hover {
+            text-decoration: underline;
+        }
+
+
+        
+        .cadastro-footer {
+            margin-top: 0.1px;
+        }
+
+        .cadastro-footer a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .cadastro-footer a:hover {
+            text-decoration: underline;
+        }

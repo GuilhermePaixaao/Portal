@@ -58,7 +58,13 @@ module.exports = class FuncionarioRoteador {
      */
     createRoutes = () => {
         console.log("⬆️  FuncionarioRoteador.createRoutes()");
+        
+        
+        this.#router.post("/",
+            this.#funcionarioMiddleware.validateCreateBody,
+            this.#funcionarioControle.store
 
+        )
         // ROTA: POST[/funcionarios/login]
         this.#router.post("/login",
             this.#funcionarioMiddleware.validateLoginBody,
